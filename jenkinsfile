@@ -10,6 +10,20 @@ pipeline {
         checkout scm
       }
     }
+    stage('SonarQube Analysis') {
+      steps {
+        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+          // On a Windows agent:
+          bat """
+            docker run --rm \
+              -e SONAR_HOST_URL=http://host.docker.internal:9000 \
+              -e SONAR_LOGIN=%SONAR_TOKEN% \
+              -v %WORKSPACE%:/usr/src \
+              sonarsource/sonar-scanner-cli
+          """
+        }
+      }
+    }
     stage('Install & Test') {
       steps {
         // use bat for Windows
