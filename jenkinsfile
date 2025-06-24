@@ -3,7 +3,7 @@ pipeline {
   environment {
     REGISTRY = "docker.io/spethan1"
     IMAGE    = "${REGISTRY}/todo-api"
-    STAGING_IP  = "18.191.5.173"
+    STAGING_IP  = '18.191.5.173'
   }
   stages {
     stage('Checkout') {
@@ -60,7 +60,7 @@ pipeline {
         sshagent (credentials: ['ec2-ssh']) {
           // Run remotely via SSH into your VM
           sh """
-            ssh -o StrictHostKeyChecking=no ubuntu@${18.191.5.173} '
+            ssh -o StrictHostKeyChecking=no ubuntu@${STAGING_IP} '
               cd ~/todo-api && \
               docker-compose -f docker-compose.staging.yml pull && \
               docker-compose -f docker-compose.staging.yml up -d
