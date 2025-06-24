@@ -3,6 +3,7 @@ pipeline {
   environment {
     REGISTRY = "docker.io/spethan1"
     IMAGE    = "${REGISTRY}/todo-api"
+    STAGING_IP  = "18.191.5.173"
   }
   stages {
     stage('Checkout') {
@@ -52,6 +53,23 @@ pipeline {
         }
       }
     }
+
+    stage('Deploy to Staging') {
+      steps {
+        // Use the SSH Agent plugin to load the EC2 key
+        sshagent (credentials: ['ec2-ssh']) {
+          // Run remotely via SSH into your VM
+          sh """
+            ssh -o StrictHostKeyChecking=no ubuntu@${18.191.5.173} '
+              cd ~/todo-api && \
+              docker-compose -f docker-compose.staging.yml pull && \
+              docker-compose -f docker-compose.staging.yml up -d
+            '
+          """
+        }
+      }
+    }
+  
   }
   post {
     always   { cleanWs() }
