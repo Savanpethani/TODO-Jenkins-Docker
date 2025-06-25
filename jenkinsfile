@@ -55,22 +55,25 @@ pipeline {
     }
 
     stage('Deploy to Staging') {
-      steps {
-        // Use the SSH Agent plugin to load the EC2 key
-        sshagent (credentials: ['ec2-ssh']) {
-          // Run remotely via SSH into your VM
-          sh """
-            ssh -o StrictHostKeyChecking=no ubuntu@${STAGING_IP} '
-              cd ~/todo-api && \
-              docker-compose -f docker-compose.staging.yml pull && \
-              docker-compose -f docker-compose.staging.yml up -d
-            '
-          """
-        }
-      }
+  steps {
+    withCredentials([sshUserPrivateKey(
+      credentialsId: 'ec2-ssh',
+      keyFileVariable: 'SSH_KEY_PATH',
+      usernameVariable: 'SSH_USER'
+    )]) {
+      bat """
+        :: Lock down the key file so OpenSSH will accept it
+        icacls "%SSH_KEY_PATH%" /inheritance:r
+        icacls "%SSH_KEY_PATH%" /remove:g "BUILTIN\\Users"
+
+        :: Run your remote deploy in one shot
+        ssh -o StrictHostKeyChecking=no -i "%SSH_KEY_PATH%" %SSH_USER%@${env.STAGING_IP} "cd ~/todo-api && docker-compose -f docker-compose.staging.yml pull && docker-compose -f docker-compose.staging.yml up -d"
+      """
     }
-  
   }
+}
+
+}
   post {
     always   { cleanWs() }
     success  { echo "✅ Pipeline succeeded!" }
