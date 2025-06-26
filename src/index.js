@@ -1,3 +1,13 @@
+
+
+// src/index.js
+const express = require('express');
+const app = express();
+app.use(express.json());
+
+let todos = [];
+let nextId = 1;
+
 app.get('/', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="en">
@@ -73,14 +83,6 @@ app.get('/', (req, res) => {
 </body>
 </html>`);
 });
-
-// src/index.js
-const express = require('express');
-const app = express();
-app.use(express.json());
-
-let todos = [];
-let nextId = 1;
 
 // List all
 app.get('/todos', (req, res) => {
