@@ -54,24 +54,24 @@ pipeline {
       }
     }
 
-    stage('Deploy to Staging') {
-  steps {
-    withCredentials([sshUserPrivateKey(
-      credentialsId: 'ec2-ssh',
-      keyFileVariable: 'SSH_KEY_PATH',
-      usernameVariable: 'SSH_USER'
-    )]) {
-      bat """
-        :: Lock down the key file so OpenSSH will accept it
-        icacls "%SSH_KEY_PATH%" /inheritance:r
-        icacls "%SSH_KEY_PATH%" /remove:g "BUILTIN\\Users"
+  stage('Deploy to Staging') {
+    steps {
+      withCredentials([sshUserPrivateKey(
+        credentialsId: 'ec2-ssh',
+        keyFileVariable: 'SSH_KEY_PATH',
+        usernameVariable: 'SSH_USER'
+      )]) {
+        bat """
+          copy /Y "%SSH_KEY_PATH%" "%WORKSPACE%\\\\id_rsa_deploy"
+          icacls "%WORKSPACE%\\\\id_rsa_deploy" /inheritance:r
+          icacls "%WORKSPACE%\\\\id_rsa_deploy" /grant:r "NT AUTHORITY\\\\SYSTEM":R "BUILTIN\\\\Administrators":R
+          ssh -o StrictHostKeyChecking=no -i "%WORKSPACE%\\\\id_rsa_deploy" %SSH_USER%@${env.STAGING_IP} "cd ~/todo-api && docker-compose -f docker-compose.staging.yml pull && docker-compose -f docker-compose.staging.yml up -d"
+          """
 
-        :: Run your remote deploy in one shot
-        ssh -o StrictHostKeyChecking=no -i "%SSH_KEY_PATH%" %SSH_USER%@${env.STAGING_IP} "cd ~/todo-api && docker-compose -f docker-compose.staging.yml pull && docker-compose -f docker-compose.staging.yml up -d"
-      """
+      }
     }
   }
-}
+
 
 }
   post {
