@@ -55,22 +55,22 @@ pipeline {
     }
 
   stage('Deploy to Staging') {
-    steps {
-      withCredentials([sshUserPrivateKey(
-        credentialsId: 'ec2-ssh',
-        keyFileVariable: 'SSH_KEY_PATH',
-        usernameVariable: 'SSH_USER'
-      )]) {
-        bat """
-          copy /Y "%SSH_KEY_PATH%" "%WORKSPACE%\\\\id_rsa_deploy"
-          icacls "%WORKSPACE%\\\\id_rsa_deploy" /inheritance:r
-          icacls "%WORKSPACE%\\\\id_rsa_deploy" /grant:r "NT AUTHORITY\\\\SYSTEM":R "BUILTIN\\\\Administrators":R
-          ssh -o StrictHostKeyChecking=no -i "%WORKSPACE%\\\\id_rsa_deploy" %SSH_USER%@${env.STAGING_IP} "cd ~/todo-api && docker-compose -f docker-compose.staging.yml pull && docker-compose -f docker-compose.staging.yml up -d"
-          """
-
-      }
+  steps {
+    withCredentials([sshUserPrivateKey(
+      credentialsId: 'ec2-ssh',
+      keyFileVariable: 'SSH_KEY_PATH',
+      usernameVariable: 'SSH_USER'
+    )]) {
+      bat """
+copy /Y "%SSH_KEY_PATH%" "%WORKSPACE%\\id_rsa_deploy"
+icacls "%WORKSPACE%\\id_rsa_deploy" /inheritance:r
+icacls "%WORKSPACE%\\id_rsa_deploy" /grant:r SYSTEM:R
+ssh -o StrictHostKeyChecking=no -i "%WORKSPACE%\\id_rsa_deploy" %SSH_USER%@${env.STAGING_IP} "mkdir -p ~/todo-api && cd ~/todo-api && if [ -d .git ]; then git pull; else git clone https://github.com/Savanpethani/TODO-Jenkins-Docker.git .; fi && docker-compose -f docker-compose.staging.yml pull && docker-compose -f docker-compose.staging.yml up -d"
+"""
     }
   }
+}
+
 
 
 }
