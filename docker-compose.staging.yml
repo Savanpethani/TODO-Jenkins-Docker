@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   todo-api:
-    image: docker.io/<your-dockerhub-username>/todo-api:latest
+    image: docker.io/spethan1/todo-api:latest
     ports:
       - "3000:3000"
     restart: always
