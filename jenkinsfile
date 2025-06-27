@@ -65,7 +65,7 @@ pipeline {
 copy /Y "%SSH_KEY_PATH%" "%WORKSPACE%\\id_rsa_deploy"
 icacls "%WORKSPACE%\\id_rsa_deploy" /inheritance:r
 icacls "%WORKSPACE%\\id_rsa_deploy" /grant:r SYSTEM:R
-ssh -o StrictHostKeyChecking=no -i "%WORKSPACE%\\id_rsa_deploy" %SSH_USER%@${env.STAGING_IP} "mkdir -p ~/todo-api && cd ~/todo-api && if [ -d .git ]; then git pull; else git clone https://github.com/Savanpethani/TODO-Jenkins-Docker.git .; fi && docker-compose -f docker-compose.staging.yml pull && docker-compose -f docker-compose.staging.yml up -d"
+ssh -o StrictHostKeyChecking=no -i "%WORKSPACE%\\id_rsa_deploy" %SSH_USER%@${env.STAGING_IP} "mkdir -p ~/todo-api && cd ~/todo-api && if [ -d .git ]; then git pull; else git clone https://github.com/Savanpethani/TODO-Jenkins-Docker.git .; fi && docker-compose -f docker-compose.staging.yml down --remove-orphans &&  docker-compose -f docker-compose.staging.yml pull && docker-compose -f docker-compose.staging.yml up -d"
 """
     }
   }
